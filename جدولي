@@ -1,0 +1,3028 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أداة الجدول الدراسي</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- jQuery UI for Drag and Drop -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --dark-color: #2e3e50;
+            --light-color: #f8f9fc;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+            --font-primary: 'Cairo', sans-serif;
+            --font-secondary: 'Roboto', sans-serif;
+            
+            /* Default Light Theme */
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --cell-bg: #f8f9fc;
+            --border-color: #e3e6f0;
+            --header-bg: #4e73df;
+            --header-text: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-color: #1e2a3a;
+            --text-color: #f8f9fc;
+            --cell-bg: #2e3e50;
+            --border-color: #4e5d6c;
+            --header-bg: #3a506b;
+            --header-text: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation Bar */
+        .top-navbar {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .app-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .setting-btn {
+            background: transparent;
+            border: none;
+            color: var(--header-text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        
+        .setting-btn:hover {
+            opacity: 0.8;
+        }
+        
+        /* Main Container */
+        .main-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Schedule Table */
+        .schedule-table {
+            width: 100%;
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            box-shadow: 0 0 15px var(--shadow-color);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .table-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 15px;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+        }
+        
+        .table-title-input {
+            background: transparent;
+            border: none;
+            color: var(--header-text);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .table-title-input:focus {
+            outline: 1px dashed rgba(255, 255, 255, 0.5);
+        }
+        
+        .day-row {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 100px;
+        }
+        
+        .day-row:last-child {
+            border-bottom: none;
+        }
+        
+        .day-name {
+            min-width: 120px;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            padding: 10px;
+        }
+        
+        .day-cells {
+            display: flex;
+            flex-grow: 1;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .cell {
+            min-width: 150px;
+            flex-grow: 1;
+            border-left: 1px solid var(--border-color);
+            padding: 10px;
+            background-color: var(--cell-bg);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .cell:last-child {
+            border-left: none;
+        }
+        
+        .cell:hover {
+            background-color: rgba(78, 115, 223, 0.1);
+        }
+        
+        .cell-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .cell-time {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .cell-notes {
+            font-size: 0.8rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .day-add-btn {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 25px;
+            height: 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1;
+        }
+        
+        .day-add-btn:hover {
+            background-color: #375cce;
+        }
+        
+        .cell-delete-btn {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 25px;
+            height: 25px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .cell:hover .cell-delete-btn {
+            opacity: 1;
+        }
+        
+        .cell-delete-btn:hover {
+            background-color: #d42c1d;
+        }
+        
+        /* Cell Editor Modal */
+        .cell-editor-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
+        }
+        
+        .cell-editor-content {
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--shadow-color);
+            width: 90%;
+            max-width: 500px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .editor-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .editor-close {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        
+        .editor-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .editor-form .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .editor-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .editor-form input, .editor-form textarea, .editor-form select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        .editor-form input:focus, .editor-form textarea:focus, .editor-form select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .editor-color-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .color-picker-container {
+            flex: 1;
+        }
+        
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .editor-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .editor-save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .editor-save-btn:hover {
+            background-color: #375cce;
+        }
+        
+        .editor-delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .editor-delete-btn:hover {
+            background-color: #d42c1d;
+        }
+        
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
+        }
+        
+        .settings-content {
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--shadow-color);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .settings-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+        }
+        
+        .settings-tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .settings-section {
+            display: none;
+        }
+        
+        .settings-section.active {
+            display: block;
+        }
+        
+        .settings-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .settings-label {
+            font-weight: 600;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        
+        .color-theme-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .theme-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .theme-option.active {
+            border-color: var(--primary-color);
+        }
+        
+        .theme-option.light {
+            background-color: #f8f9fc;
+        }
+        
+        .theme-option.dark {
+            background-color: #1e2a3a;
+        }
+        
+        .theme-option.blue {
+            background-color: #4e73df;
+        }
+        
+        .theme-option.green {
+            background-color: #1cc88a;
+        }
+        
+        .theme-option.red {
+            background-color: #e74a3b;
+        }
+        
+        .saved-schedules-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+        
+        .saved-schedule-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .saved-schedule-item:last-child {
+            border-bottom: none;
+        }
+        
+        .saved-schedule-title {
+            font-weight: 600;
+        }
+        
+        .saved-schedule-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .saved-schedule-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+        
+        .saved-schedule-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        .settings-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .settings-apply-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .settings-apply-btn:hover {
+            background-color: #375cce;
+        }
+        
+        .settings-cancel-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .settings-cancel-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .action-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background-color: var(--header-bg);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .action-btn i {
+            font-size: 1rem;
+        }
+        
+        .action-btn.primary {
+            background-color: var(--primary-color);
+        }
+        
+        .action-btn.success {
+            background-color: var(--secondary-color);
+        }
+        
+        .action-btn.warning {
+            background-color: var(--warning-color);
+        }
+        
+        .action-btn.danger {
+            background-color: var(--danger-color);
+        }
+        
+        .action-btn.info {
+            background-color: var(--info-color);
+        }
+        
+        /* Search Box */
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-input {
+            padding: 8px 15px;
+            padding-right: 35px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-width: 200px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            color: #6c757d;
+        }
+        
+        /* Language Switcher */
+        .language-switcher {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .language-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .language-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px var(--shadow-color);
+            z-index: 1060;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification-icon {
+            font-size: 1.5rem;
+        }
+        
+        .notification-success .notification-icon {
+            color: var(--secondary-color);
+        }
+        
+        .notification-error .notification-icon {
+            color: var(--danger-color);
+        }
+        
+        .notification-warning .notification-icon {
+            color: var(--warning-color);
+        }
+        
+        .notification-info .notification-icon {
+            color: var(--info-color);
+        }
+        
+        .notification-message {
+            flex-grow: 1;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .action-bar {
+                flex-direction: column;
+            }
+            
+            .action-group {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            
+            .day-name {
+                min-width: 80px;
+            }
+            
+            .cell {
+                min-width: 120px;
+            }
+        }
+        
+        /* Font Size Controls */
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .font-size-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        
+        .font-size-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* Animation for add/remove cells */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+        
+        .cell.new {
+            animation: fadeIn 0.3s forwards;
+        }
+        
+        .cell.removing {
+            animation: fadeOut 0.3s forwards;
+        }
+        
+        /* Print Styles */
+        @media print {
+            .top-navbar, .action-bar, .cell-delete-btn, .day-add-btn {
+                display: none !important;
+            }
+            
+            body {
+                background-color: white;
+                color: black;
+            }
+            
+            .schedule-table {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            
+            .day-name {
+                background-color: #f5f5f5;
+                color: black;
+            }
+            
+            .cell {
+                background-color: white;
+            }
+            
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        
+        /* Drag and Drop */
+        .ui-sortable-helper {
+            box-shadow: 0 0 10px var(--shadow-color);
+            opacity: 0.9;
+        }
+        
+        .ui-sortable-placeholder {
+            background-color: rgba(78, 115, 223, 0.2);
+            border: 2px dashed var(--primary-color);
+            visibility: visible !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <div class="top-navbar">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="app-title">أداة الجدول الدراسي</h1>
+            <div>
+                <div class="language-switcher d-inline-block me-3">
+                    <button class="language-btn active" data-lang="ar">العربية</button>
+                    <button class="language-btn" data-lang="en">English</button>
+                </div>
+                <button class="setting-btn" id="settingsBtn">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="setting-btn" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button class="setting-btn" id="exportBtn">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="setting-btn" id="printBtn">
+                    <i class="fas fa-print"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="action-group">
+                <button class="action-btn primary" id="newScheduleBtn">
+                    <i class="fas fa-plus"></i>
+                    <span class="lang-text" data-key="newSchedule">جدول جديد</span>
+                </button>
+                <button class="action-btn success" id="saveScheduleBtn">
+                    <i class="fas fa-save"></i>
+                    <span class="lang-text" data-key="saveSchedule">حفظ الجدول</span>
+                </button>
+                <button class="action-btn info" id="loadScheduleBtn">
+                    <i class="fas fa-folder-open"></i>
+                    <span class="lang-text" data-key="loadSchedule">تحميل جدول</span>
+                </button>
+                <button class="action-btn warning" id="undoBtn">
+                    <i class="fas fa-undo"></i>
+                    <span class="lang-text" data-key="undo">تراجع</span>
+                </button>
+            </div>
+            
+            <div class="action-group">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="بحث...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <button class="action-btn danger" id="clearScheduleBtn">
+                    <i class="fas fa-trash"></i>
+                    <span class="lang-text" data-key="clearSchedule">مسح الجدول</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Schedule Table -->
+        <div id="scheduleTable" class="schedule-table">
+            <div class="table-title">
+                <input type="text" class="table-title-input" id="scheduleTitle" value="الجدول الدراسي الأسبوعي">
+            </div>
+            
+            <div class="day-row" data-day="sunday">
+                <div class="day-name lang-text" data-key="sunday">الأحد</div>
+                <div class="day-cells">
+                    <button class="day-add-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="day-row" data-day="monday">
+                <div class="day-name lang-text" data-key="monday">الاثنين</div>
+                <div class="day-cells">
+                    <button class="day-add-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="day-row" data-day="tuesday">
+                <div class="day-name lang-text" data-key="tuesday">الثلاثاء</div>
+                <div class="day-cells">
+                    <button class="day-add-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="day-row" data-day="wednesday">
+                <div class="day-name lang-text" data-key="wednesday">الأربعاء</div>
+                <div class="day-cells">
+                    <button class="day-add-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="day-row" data-day="thursday">
+                <div class="day-name lang-text" data-key="thursday">الخميس</div>
+                <div class="day-cells">
+                    <button class="day-add-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="day-row" data-day="friday">
+                <div class="day-name lang-text" data-key="friday">الجمعة</div>
+                <div class="day-cells">
+                    <button class="day-add-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="day-row" data-day="saturday">
+                <div class="day-name lang-text" data-key="saturday">السبت</div>
+                <div class="day-cells">
+                    <button class="day-add-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cell Editor Modal -->
+    <div class="cell-editor-modal" id="cellEditorModal">
+        <div class="cell-editor-content">
+            <button class="editor-close">&times;</button>
+            <h3 class="editor-title lang-text" data-key="editCell">تعديل الخانة</h3>
+            
+            <form class="editor-form" id="cellEditorForm">
+                <input type="hidden" id="editCellId">
+                <input type="hidden" id="editCellDay">
+                <input type="hidden" id="editCellIndex">
+                
+                <div class="form-group">
+                    <label for="cellTitle" class="lang-text" data-key="taskName">اسم المهمة:</label>
+                    <input type="text" id="cellTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cellNotes" class="lang-text" data-key="notes">ملاحظات:</label>
+                    <textarea id="cellNotes" rows="3"></textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="cellStartTime" class="lang-text" data-key="startTime">وقت البداية:</label>
+                            <input type="time" id="cellStartTime">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="cellEndTime" class="lang-text" data-key="endTime">وقت النهاية:</label>
+                            <input type="time" id="cellEndTime">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="editor-color-row">
+                    <div class="color-picker-container">
+                        <label for="cellColor" class="lang-text" data-key="cellColor">لون الخانة:</label>
+                        <div>
+                            <span class="color-preview" id="cellColorPreview"></span>
+                            <input type="color" id="cellColor" value="#f8f9fc">
+                        </div>
+                    </div>
+                    <div class="color-picker-container">
+                        <label for="textColor" class="lang-text" data-key="textColor">لون النص:</label>
+                        <div>
+                            <span class="color-preview" id="textColorPreview"></span>
+                            <input type="color" id="textColor" value="#333333">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fontFamily" class="lang-text" data-key="fontType">نوع الخط:</label>
+                    <select id="fontFamily">
+                        <option value="Cairo, sans-serif">Cairo</option>
+                        <option value="Roboto, sans-serif">Roboto</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="Tahoma, sans-serif">Tahoma</option>
+                        <option value="Times New Roman, serif">Times New Roman</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fontSize" class="lang-text" data-key="fontSize">حجم الخط:</label>
+                    <select id="fontSize">
+                        <option value="0.8rem">صغير</option>
+                        <option value="1rem" selected>عادي</option>
+                        <option value="1.2rem">كبير</option>
+                        <option value="1.5rem">كبير جدًا</option>
+                    </select>
+                </div>
+                
+                <div class="editor-footer">
+                    <button type="submit" class="editor-save-btn lang-text" data-key="save">حفظ</button>
+                    <button type="button" class="editor-delete-btn lang-text" data-key="delete" id="editorDeleteBtn">حذف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <button class="editor-close" id="settingsCloseBtn">&times;</button>
+            <h3 class="editor-title lang-text" data-key="settings">الإعدادات</h3>
+            
+            <div class="settings-tabs">
+                <div class="settings-tab active" data-tab="general">
+                    <span class="lang-text" data-key="general">عام</span>
+                </div>
+                <div class="settings-tab" data-tab="appearance">
+                    <span class="lang-text" data-key="appearance">المظهر</span>
+                </div>
+                <div class="settings-tab" data-tab="saved">
+                    <span class="lang-text" data-key="savedSchedules">الجداول المحفوظة</span>
+                </div>
+                <div class="settings-tab" data-tab="export">
+                    <span class="lang-text" data-key="exportImport">تصدير/استيراد</span>
+                </div>
+            </div>
+            
+            <div class="settings-section active" data-section="general">
+                <h4 class="settings-title lang-text" data-key="generalSettings">إعدادات عامة</h4>
+                
+                <div class="settings-form">
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="autoSave">حفظ تلقائي</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoSaveToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="responsiveLayout">تخطيط متوافق مع حجم الشاشة</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="responsiveToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="browserNotifications">إشعارات المتصفح</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="notificationsToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="defaultDayColors">ألوان افتراضية مختلفة لكل يوم</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="dayColorsToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="language">اللغة</div>
+                        <div>
+                            <select id="languageSelect">
+                                <option value="ar">العربية</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section" data-section="appearance">
+                <h4 class="settings-title lang-text" data-key="appearanceSettings">إعدادات المظهر</h4>
+                
+                <div class="settings-form">
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="darkMode">الوضع الداكن</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="autoDarkMode">وضع داكن تلقائي حسب وقت الجهاز</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoDarkModeToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="colorTheme">نمط الألوان</div>
+                        <div class="color-theme-options">
+                            <div class="theme-option light active" data-theme="light"></div>
+                            <div class="theme-option dark" data-theme="dark"></div>
+                            <div class="theme-option blue" data-theme="blue"></div>
+                            <div class="theme-option green" data-theme="green"></div>
+                            <div class="theme-option red" data-theme="red"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="tableHeaderColor">لون عناوين الجدول</div>
+                        <div>
+                            <span class="color-preview" id="headerColorPreview"></span>
+                            <input type="color" id="headerColorPicker" value="#4e73df">
+                        </div>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="defaultFont">الخط الافتراضي</div>
+                        <div>
+                            <select id="defaultFontSelect">
+                                <option value="Cairo, sans-serif">Cairo</option>
+                                <option value="Roboto, sans-serif">Roboto</option>
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="Tahoma, sans-serif">Tahoma</option>
+                                <option value="Times New Roman, serif">Times New Roman</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-label lang-text" data-key="defaultFontSize">حجم الخط الافتراضي</div>
+                        <div class="font-size-controls">
+                            <button class="font-size-btn" id="decreaseFontBtn">-</button>
+                            <span id="currentFontSize">1rem</span>
+                            <button class="font-size-btn" id="increaseFontBtn">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section" data-section="saved">
+                <h4 class="settings-title lang-text" data-key="savedSchedules">الجداول المحفوظة</h4>
+                
+                <div id="savedSchedulesList" class="saved-schedules-list">
+                    <!-- Saved schedules will be populated here -->
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-danger btn-sm" id="clearSavedBtn">
+                        <i class="fas fa-trash me-1"></i>
+                        <span class="lang-text" data-key="clearAll">مسح الكل</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="settings-section" data-section="export">
+                <h4 class="settings-title lang-text" data-key="exportImport">تصدير/استيراد</h4>
+                
+                <div class="settings-form">
+                    <div class="mb-3">
+                        <label class="settings-label lang-text" data-key="exportSchedule">تصدير الجدول الحالي</label>
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-primary btn-sm" id="exportJsonBtn">
+                                <i class="fas fa-file-code me-1"></i>
+                                <span class="lang-text" data-key="exportJSON">تصدير كملف JSON</span>
+                            </button>
+                            <button class="btn btn-success btn-sm" id="exportPdfBtn">
+                                <i class="fas fa-file-pdf me-1"></i>
+                                <span class="lang-text" data-key="exportPDF">تصدير كملف PDF</span>
+                            </button>
+                            <button class="btn btn-info btn-sm" id="exportPngBtn">
+                                <i class="fas fa-file-image me-1"></i>
+                                <span class="lang-text" data-key="exportPNG">تصدير كصورة PNG</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="settings-label lang-text" data-key="importSchedule">استيراد جدول</label>
+                        <div class="mt-2">
+                            <input type="file" id="importJsonInput" accept=".json" class="form-control">
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-2" id="importJsonBtn">
+                            <i class="fas fa-file-import me-1"></i>
+                            <span class="lang-text" data-key="importJSON">استيراد من ملف JSON</span>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="settings-label lang-text" data-key="backupAll">عمل نسخة احتياطية من جميع الجداول</label>
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-primary btn-sm" id="exportAllBtn">
+                                <i class="fas fa-cloud-download-alt me-1"></i>
+                                <span class="lang-text" data-key="exportAll">تصدير جميع البيانات</span>
+                            </button>
+                            <button class="btn btn-warning btn-sm" id="importAllBtn">
+                                <i class="fas fa-cloud-upload-alt me-1"></i>
+                                <span class="lang-text" data-key="importAll">استيراد جميع البيانات</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-footer">
+                <button class="settings-apply-btn lang-text" data-key="apply" id="settingsApplyBtn">تطبيق</button>
+                <button class="settings-cancel-btn lang-text" data-key="cancel" id="settingsCancelBtn">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-info-circle notification-icon"></i>
+        <div class="notification-message" id="notificationMessage"></div>
+        <button class="notification-close">&times;</button>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script>
+        // Global variables
+        let currentLanguage = 'ar';
+        let currentScheduleId = 'default';
+        let lastAction = null;
+        let autoSaveEnabled = true;
+        let cellCounter = 0;
+        
+        // Language translations
+        const translations = {
+            ar: {
+                sunday: 'الأحد',
+                monday: 'الاثنين',
+                tuesday: 'الثلاثاء',
+                wednesday: 'الأربعاء',
+                thursday: 'الخميس',
+                friday: 'الجمعة',
+                saturday: 'السبت',
+                newSchedule: 'جدول جديد',
+                saveSchedule: 'حفظ الجدول',
+                loadSchedule: 'تحميل جدول',
+                undo: 'تراجع',
+                clearSchedule: 'مسح الجدول',
+                editCell: 'تعديل الخانة',
+                taskName: 'اسم المهمة',
+                notes: 'ملاحظات',
+                startTime: 'وقت البداية',
+                endTime: 'وقت النهاية',
+                cellColor: 'لون الخانة',
+                textColor: 'لون النص',
+                fontType: 'نوع الخط',
+                fontSize: 'حجم الخط',
+                save: 'حفظ',
+                delete: 'حذف',
+                settings: 'الإعدادات',
+                general: 'عام',
+                appearance: 'المظهر',
+                savedSchedules: 'الجداول المحفوظة',
+                exportImport: 'تصدير/استيراد',
+                generalSettings: 'إعدادات عامة',
+                autoSave: 'حفظ تلقائي',
+                responsiveLayout: 'تخطيط متوافق مع حجم الشاشة',
+                browserNotifications: 'إشعارات المتصفح',
+                defaultDayColors: 'ألوان افتراضية مختلفة لكل يوم',
+                language: 'اللغة',
+                appearanceSettings: 'إعدادات المظهر',
+                darkMode: 'الوضع الداكن',
+                autoDarkMode: 'وضع داكن تلقائي حسب وقت الجهاز',
+                colorTheme: 'نمط الألوان',
+                tableHeaderColor: 'لون عناوين الجدول',
+                defaultFont: 'الخط الافتراضي',
+                defaultFontSize: 'حجم الخط الافتراضي',
+                clearAll: 'مسح الكل',
+                exportSchedule: 'تصدير الجدول الحالي',
+                exportJSON: 'تصدير كملف JSON',
+                exportPDF: 'تصدير كملف PDF',
+                exportPNG: 'تصدير كصورة PNG',
+                importSchedule: 'استيراد جدول',
+                importJSON: 'استيراد من ملف JSON',
+                backupAll: 'عمل نسخة احتياطية من جميع الجداول',
+                exportAll: 'تصدير جميع البيانات',
+                importAll: 'استيراد جميع البيانات',
+                apply: 'تطبيق',
+                cancel: 'إلغاء',
+                scheduleCreated: 'تم إنشاء الجدول بنجاح',
+                scheduleSaved: 'تم حفظ الجدول بنجاح',
+                scheduleLoaded: 'تم تحميل الجدول بنجاح',
+                scheduleDeleted: 'تم حذف الجدول بنجاح',
+                scheduleCleared: 'تم مسح الجدول بنجاح',
+                cellDeleted: 'تم حذف الخانة بنجاح',
+                cellUpdated: 'تم تحديث الخانة بنجاح',
+                actionUndone: 'تم التراجع عن الإجراء الأخير',
+                searchResults: 'نتائج البحث:',
+                noSearchResults: 'لا توجد نتائج مطابقة للبحث',
+                exportSuccess: 'تم تصدير الجدول بنجاح',
+                importSuccess: 'تم استيراد الجدول بنجاح',
+                confirmClear: 'هل أنت متأكد من رغبتك في مسح الجدول بالكامل؟',
+                confirmDeleteSchedule: 'هل أنت متأكد من رغبتك في حذف هذا الجدول؟',
+                confirmDeleteAll: 'هل أنت متأكد من رغبتك في حذف جميع الجداول المحفوظة؟',
+                noSavedSchedules: 'لا توجد جداول محفوظة',
+                untitledSchedule: 'جدول بدون عنوان',
+                weeklySchedule: 'الجدول الدراسي الأسبوعي',
+                task: 'مهمة',
+                noTask: 'لا توجد مهمة',
+                shareLink: 'رابط المشاركة',
+                copyLink: 'نسخ الرابط',
+                linkCopied: 'تم نسخ الرابط',
+                error: 'حدث خطأ',
+                reminder: 'تذكير',
+                reminderSet: 'تم تعيين التذكير',
+                reminderCleared: 'تم إلغاء التذكير',
+                sortByTime: 'ترتيب حسب الوقت',
+                searchPlaceholder: 'بحث...',
+                share: 'مشاركة',
+                edit: 'تعديل',
+                duplicate: 'نسخ',
+                restore: 'استعادة',
+                default: 'افتراضي',
+                settingsSaved: 'تم حفظ الإعدادات',
+                small: 'صغير',
+                medium: 'متوسط',
+                large: 'كبير',
+                extraLarge: 'كبير جدًا',
+                lightMode: 'الوضع الفاتح',
+                darkMode: 'الوضع الداكن',
+                blueTheme: 'الثيم الأزرق',
+                greenTheme: 'الثيم الأخضر',
+                redTheme: 'الثيم الأحمر',
+                defaultSettings: 'استعادة الإعدادات الافتراضية',
+                title: 'أداة الجدول الدراسي'
+            },
+            en: {
+                sunday: 'Sunday',
+                monday: 'Monday',
+                tuesday: 'Tuesday',
+                wednesday: 'Wednesday',
+                thursday: 'Thursday',
+                friday: 'Friday',
+                saturday: 'Saturday',
+                newSchedule: 'New Schedule',
+                saveSchedule: 'Save Schedule',
+                loadSchedule: 'Load Schedule',
+                undo: 'Undo',
+                clearSchedule: 'Clear Schedule',
+                editCell: 'Edit Cell',
+                taskName: 'Task Name',
+                notes: 'Notes',
+                startTime: 'Start Time',
+                endTime: 'End Time',
+                cellColor: 'Cell Color',
+                textColor: 'Text Color',
+                fontType: 'Font Type',
+                fontSize: 'Font Size',
+                save: 'Save',
+                delete: 'Delete',
+                settings: 'Settings',
+                general: 'General',
+                appearance: 'Appearance',
+                savedSchedules: 'Saved Schedules',
+                exportImport: 'Export/Import',
+                generalSettings: 'General Settings',
+                autoSave: 'Auto Save',
+                responsiveLayout: 'Responsive Layout',
+                browserNotifications: 'Browser Notifications',
+                defaultDayColors: 'Default Colors For Each Day',
+                language: 'Language',
+                appearanceSettings: 'Appearance Settings',
+                darkMode: 'Dark Mode',
+                autoDarkMode: 'Auto Dark Mode Based On Device Time',
+                colorTheme: 'Color Theme',
+                tableHeaderColor: 'Table Header Color',
+                defaultFont: 'Default Font',
+                defaultFontSize: 'Default Font Size',
+                clearAll: 'Clear All',
+                exportSchedule: 'Export Current Schedule',
+                exportJSON: 'Export as JSON',
+                exportPDF: 'Export as PDF',
+                exportPNG: 'Export as PNG',
+                importSchedule: 'Import Schedule',
+                importJSON: 'Import from JSON',
+                backupAll: 'Backup All Schedules',
+                exportAll: 'Export All Data',
+                importAll: 'Import All Data',
+                apply: 'Apply',
+                cancel: 'Cancel',
+                scheduleCreated: 'Schedule created successfully',
+                scheduleSaved: 'Schedule saved successfully',
+                scheduleLoaded: 'Schedule loaded successfully',
+                scheduleDeleted: 'Schedule deleted successfully',
+                scheduleCleared: 'Schedule cleared successfully',
+                cellDeleted: 'Cell deleted successfully',
+                cellUpdated: 'Cell updated successfully',
+                actionUndone: 'Action undone successfully',
+                searchResults: 'Search results:',
+                noSearchResults: 'No matching results',
+                exportSuccess: 'Schedule exported successfully',
+                importSuccess: 'Schedule imported successfully',
+                confirmClear: 'Are you sure you want to clear the entire schedule?',
+                confirmDeleteSchedule: 'Are you sure you want to delete this schedule?',
+                confirmDeleteAll: 'Are you sure you want to delete all saved schedules?',
+                noSavedSchedules: 'No saved schedules',
+                untitledSchedule: 'Untitled Schedule',
+                weeklySchedule: 'Weekly Schedule',
+                task: 'Task',
+                noTask: 'No Task',
+                shareLink: 'Share Link',
+                copyLink: 'Copy Link',
+                linkCopied: 'Link copied',
+                error: 'Error',
+                reminder: 'Reminder',
+                reminderSet: 'Reminder set',
+                reminderCleared: 'Reminder cleared',
+                sortByTime: 'Sort by time',
+                searchPlaceholder: 'Search...',
+                share: 'Share',
+                edit: 'Edit',
+                duplicate: 'Duplicate',
+                restore: 'Restore',
+                default: 'Default',
+                settingsSaved: 'Settings saved',
+                small: 'Small',
+                medium: 'Medium',
+                large: 'Large',
+                extraLarge: 'Extra Large',
+                lightMode: 'Light Mode',
+                darkMode: 'Dark Mode',
+                blueTheme: 'Blue Theme',
+                greenTheme: 'Green Theme',
+                redTheme: 'Red Theme',
+                defaultSettings: 'Restore Default Settings',
+                title: 'Schedule Creation Tool'
+            }
+        };
+        
+        // Function to update all text based on the current language
+        function updateLanguage() {
+            // Update document direction
+            document.documentElement.setAttribute('lang', currentLanguage);
+            document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
+            
+            // Update language buttons
+            $('.language-btn').removeClass('active');
+            $(`.language-btn[data-lang="${currentLanguage}"]`).addClass('active');
+            
+            // Update all text elements with lang-text class
+            $('.lang-text').each(function() {
+                const key = $(this).data('key');
+                if (translations[currentLanguage][key]) {
+                    $(this).text(translations[currentLanguage][key]);
+                }
+            });
+            
+            // Update placeholders
+            $('#searchInput').attr('placeholder', translations[currentLanguage].searchPlaceholder);
+            
+            // Update document title
+            document.title = translations[currentLanguage].title;
+        }
+        
+        // Day colors for default day coloring
+        const dayColors = {
+            sunday: '#ffb3ba',   // Light pink
+            monday: '#ffdfba',   // Light orange
+            tuesday: '#ffffba',  // Light yellow
+            wednesday: '#baffc9', // Light green
+            thursday: '#bae1ff',  // Light blue
+            friday: '#d8baff',   // Light purple
+            saturday: '#f5baff'   // Light magenta
+        };
+        
+        // Function to initialize the schedule with default cells
+        function initializeSchedule() {
+            // Add 7 default cells for each day
+            $('.day-row').each(function() {
+                const dayName = $(this).data('day');
+                const dayCells = $(this).find('.day-cells');
+                
+                // Clear existing cells (except the add button)
+                dayCells.find('.cell').remove();
+                
+                // Add default cells
+                for (let i = 0; i < 7; i++) {
+                    addCell(dayName, dayCells);
+                }
+                
+                // Initialize sortable for drag and drop
+                dayCells.sortable({
+                    items: '.cell',
+                    cursor: 'move',
+                    axis: 'x',
+                    containment: 'parent',
+                    update: function() {
+                        if (autoSaveEnabled) {
+                            saveSchedule();
+                        }
+                    }
+                });
+            });
+            
+            // Save the initial state
+            saveSchedule();
+        }
+        
+        // Function to add a new cell to a day
+        function addCell(day, container, data = null) {
+            const cellId = `cell-${day}-${cellCounter++}`;
+            const cellData = data || {
+                id: cellId,
+                title: '',
+                notes: '',
+                startTime: '',
+                endTime: '',
+                backgroundColor: $('#dayColorsToggle').is(':checked') ? dayColors[day] : '#f8f9fc',
+                textColor: '#333333',
+                fontFamily: 'Cairo, sans-serif',
+                fontSize: '1rem'
+            };
+            
+            const timeText = cellData.startTime && cellData.endTime 
+                ? `${cellData.startTime} - ${cellData.endTime}` 
+                : '';
+            
+            const cell = $(`
+                <div class="cell new" id="${cellData.id}" data-day="${day}">
+                    <div class="cell-title">${cellData.title}</div>
+                    <div class="cell-time">${timeText}</div>
+                    <div class="cell-notes">${cellData.notes}</div>
+                    <button class="cell-delete-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `);
+            
+            // Apply custom styling
+            cell.css({
+                'background-color': cellData.backgroundColor,
+                'color': cellData.textColor,
+                'font-family': cellData.fontFamily,
+                'font-size': cellData.fontSize
+            });
+            
+            // Insert before the add button
+            container.find('.day-add-btn').before(cell);
+            
+            // After a short delay, remove the 'new' class to end the animation
+            setTimeout(() => {
+                cell.removeClass('new');
+            }, 300);
+            
+            return cell;
+        }
+        
+        // Function to open the cell editor
+        function openCellEditor(cell) {
+            const cellId = cell.attr('id');
+            const day = cell.data('day');
+            const index = cell.index();
+            
+            // Set hidden fields
+            $('#editCellId').val(cellId);
+            $('#editCellDay').val(day);
+            $('#editCellIndex').val(index);
+            
+            // Fill form with cell data
+            $('#cellTitle').val(cell.find('.cell-title').text());
+            $('#cellNotes').val(cell.find('.cell-notes').text());
+            
+            // Parse time if available
+            const timeText = cell.find('.cell-time').text();
+            if (timeText) {
+                const timeParts = timeText.split(' - ');
+                if (timeParts.length === 2) {
+                    $('#cellStartTime').val(timeParts[0]);
+                    $('#cellEndTime').val(timeParts[1]);
+                }
+            } else {
+                $('#cellStartTime').val('');
+                $('#cellEndTime').val('');
+            }
+            
+            // Set colors
+            const bgColor = cell.css('background-color');
+            const textColor = cell.css('color');
+            
+            // Convert RGB to HEX
+            const rgbToBgHex = rgbToHex(bgColor);
+            const rgbToTextHex = rgbToHex(textColor);
+            
+            $('#cellColor').val(rgbToBgHex);
+            $('#textColor').val(rgbToTextHex);
+            $('#cellColorPreview').css('background-color', rgbToBgHex);
+            $('#textColorPreview').css('background-color', rgbToTextHex);
+            
+            // Set font family and size
+            const fontFamily = cell.css('font-family');
+            $('#fontFamily option').each(function() {
+                if (fontFamily.includes($(this).text())) {
+                    $(this).prop('selected', true);
+                }
+            });
+            
+            const fontSize = cell.css('font-size');
+            $('#fontSize option').each(function() {
+                if ($(this).val() === fontSize) {
+                    $(this).prop('selected', true);
+                }
+            });
+            
+            // Show the modal
+            $('#cellEditorModal').css('display', 'flex');
+        }
+        
+        // Function to close the cell editor
+        function closeCellEditor() {
+            $('#cellEditorModal').css('display', 'none');
+        }
+        
+        // Function to save cell changes
+        function saveCellChanges() {
+            const cellId = $('#editCellId').val();
+            const cell = $(`#${cellId}`);
+            
+            // Get values from form
+            const title = $('#cellTitle').val();
+            const notes = $('#cellNotes').val();
+            const startTime = $('#cellStartTime').val();
+            const endTime = $('#cellEndTime').val();
+            const bgColor = $('#cellColor').val();
+            const textColor = $('#textColor').val();
+            const fontFamily = $('#fontFamily').val();
+            const fontSize = $('#fontSize').val();
+            
+            // Update cell content
+            cell.find('.cell-title').text(title);
+            cell.find('.cell-notes').text(notes);
+            
+            // Update time display
+            if (startTime && endTime) {
+                cell.find('.cell-time').text(`${startTime} - ${endTime}`);
+            } else {
+                cell.find('.cell-time').text('');
+            }
+            
+            // Update styling
+            cell.css({
+                'background-color': bgColor,
+                'color': textColor,
+                'font-family': fontFamily,
+                'font-size': fontSize
+            });
+            
+            // Save changes
+            if (autoSaveEnabled) {
+                saveSchedule();
+            }
+            
+            // Track last action for undo
+            lastAction = {
+                type: 'edit',
+                cellId: cellId,
+                previousData: {
+                    title: cell.find('.cell-title').text(),
+                    notes: cell.find('.cell-notes').text(),
+                    time: cell.find('.cell-time').text(),
+                    backgroundColor: cell.css('background-color'),
+                    textColor: cell.css('color'),
+                    fontFamily: cell.css('font-family'),
+                    fontSize: cell.css('font-size')
+                }
+            };
+            
+            // Show notification
+            showNotification('success', translations[currentLanguage].cellUpdated);
+            
+            // Close editor
+            closeCellEditor();
+        }
+        
+        // Function to delete a cell
+        function deleteCell(cell) {
+            // Store cell data for undo
+            const cellData = {
+                id: cell.attr('id'),
+                day: cell.data('day'),
+                index: cell.index(),
+                title: cell.find('.cell-title').text(),
+                notes: cell.find('.cell-notes').text(),
+                time: cell.find('.cell-time').text(),
+                backgroundColor: cell.css('background-color'),
+                textColor: cell.css('color'),
+                fontFamily: cell.css('font-family'),
+                fontSize: cell.css('font-size')
+            };
+            
+            // Track last action for undo
+            lastAction = {
+                type: 'delete',
+                cellData: cellData
+            };
+            
+            // Add removing class for animation
+            cell.addClass('removing');
+            
+            // After animation completes, remove the cell
+            setTimeout(() => {
+                cell.remove();
+                
+                // Save changes
+                if (autoSaveEnabled) {
+                    saveSchedule();
+                }
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].cellDeleted);
+            }, 300);
+        }
+        
+        // Function to save the current schedule
+        function saveSchedule() {
+            const scheduleData = {
+                id: currentScheduleId,
+                title: $('#scheduleTitle').val(),
+                days: {}
+            };
+            
+            // Get data for each day
+            $('.day-row').each(function() {
+                const dayName = $(this).data('day');
+                scheduleData.days[dayName] = [];
+                
+                // Get data for each cell in this day
+                $(this).find('.cell').each(function() {
+                    const cell = $(this);
+                    const timeText = cell.find('.cell-time').text();
+                    let startTime = '';
+                    let endTime = '';
+                    
+                    if (timeText) {
+                        const timeParts = timeText.split(' - ');
+                        if (timeParts.length === 2) {
+                            startTime = timeParts[0];
+                            endTime = timeParts[1];
+                        }
+                    }
+                    
+                    scheduleData.days[dayName].push({
+                        id: cell.attr('id'),
+                        title: cell.find('.cell-title').text(),
+                        notes: cell.find('.cell-notes').text(),
+                        startTime: startTime,
+                        endTime: endTime,
+                        backgroundColor: rgbToHex(cell.css('background-color')),
+                        textColor: rgbToHex(cell.css('color')),
+                        fontFamily: cell.css('font-family'),
+                        fontSize: cell.css('font-size')
+                    });
+                });
+            });
+            
+            // Save to local storage
+            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+            schedules[currentScheduleId] = scheduleData;
+            localStorage.setItem('schedules', JSON.stringify(schedules));
+            
+            // Save current schedule ID
+            localStorage.setItem('currentScheduleId', currentScheduleId);
+        }
+        
+        // Function to load a schedule
+        function loadSchedule(scheduleId) {
+            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+            
+            if (schedules[scheduleId]) {
+                const scheduleData = schedules[scheduleId];
+                
+                // Set schedule title
+                $('#scheduleTitle').val(scheduleData.title || translations[currentLanguage].weeklySchedule);
+                
+                // Clear existing cells
+                $('.day-cells .cell').remove();
+                
+                // Add cells for each day
+                for (const day in scheduleData.days) {
+                    const dayCells = $(`.day-row[data-day="${day}"] .day-cells`);
+                    
+                    for (const cellData of scheduleData.days[day]) {
+                        addCell(day, dayCells, cellData);
+                    }
+                }
+                
+                // Update current schedule ID
+                currentScheduleId = scheduleId;
+                localStorage.setItem('currentScheduleId', currentScheduleId);
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].scheduleLoaded);
+                
+                // Refresh saved schedules list if open
+                updateSavedSchedulesList();
+            }
+        }
+        
+        // Function to create a new schedule
+        function createNewSchedule() {
+            // Generate new ID
+            currentScheduleId = 'schedule-' + Date.now();
+            
+            // Reset title
+            $('#scheduleTitle').val(translations[currentLanguage].weeklySchedule);
+            
+            // Initialize with default cells
+            initializeSchedule();
+            
+            // Show notification
+            showNotification('success', translations[currentLanguage].scheduleCreated);
+            
+            // Refresh saved schedules list if open
+            updateSavedSchedulesList();
+        }
+        
+        // Function to save schedule with a name
+        function saveScheduleWithName() {
+            // Get schedule title
+            const title = $('#scheduleTitle').val() || translations[currentLanguage].untitledSchedule;
+            
+            // Save current schedule
+            saveSchedule();
+            
+            // Show notification
+            showNotification('success', translations[currentLanguage].scheduleSaved);
+            
+            // Refresh saved schedules list if open
+            updateSavedSchedulesList();
+        }
+        
+        // Function to update the list of saved schedules
+        function updateSavedSchedulesList() {
+            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+            const schedulesList = $('#savedSchedulesList');
+            
+            // Clear existing list
+            schedulesList.empty();
+            
+            // Check if there are any saved schedules
+            if (Object.keys(schedules).length === 0) {
+                schedulesList.html(`<div class="p-3 text-center text-muted">${translations[currentLanguage].noSavedSchedules}</div>`);
+                return;
+            }
+            
+            // Add each schedule to the list
+            for (const id in schedules) {
+                const schedule = schedules[id];
+                const isCurrentSchedule = id === currentScheduleId;
+                
+                const scheduleItem = $(`
+                    <div class="saved-schedule-item" data-id="${id}">
+                        <div class="saved-schedule-title">
+                            ${schedule.title || translations[currentLanguage].untitledSchedule}
+                            ${isCurrentSchedule ? ` <span class="badge bg-primary">${translations[currentLanguage].current}</span>` : ''}
+                        </div>
+                        <div class="saved-schedule-actions">
+                            <button class="saved-schedule-btn load-schedule-btn" title="${translations[currentLanguage].restore}">
+                                <i class="fas fa-folder-open"></i>
+                            </button>
+                            <button class="saved-schedule-btn duplicate-schedule-btn" title="${translations[currentLanguage].duplicate}">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="saved-schedule-btn share-schedule-btn" title="${translations[currentLanguage].share}">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button class="saved-schedule-btn delete-schedule-btn" title="${translations[currentLanguage].delete}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `);
+                
+                schedulesList.append(scheduleItem);
+            }
+        }
+        
+        // Function to clear the current schedule
+        function clearSchedule() {
+            if (confirm(translations[currentLanguage].confirmClear)) {
+                // Store current schedule for undo
+                const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+                lastAction = {
+                    type: 'clear',
+                    previousSchedule: schedules[currentScheduleId]
+                };
+                
+                // Clear cells
+                $('.day-cells .cell').remove();
+                
+                // Initialize with default empty cells
+                initializeSchedule();
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].scheduleCleared);
+            }
+        }
+        
+        // Function to delete a saved schedule
+        function deleteSchedule(scheduleId) {
+            if (confirm(translations[currentLanguage].confirmDeleteSchedule)) {
+                const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+                
+                // Store for undo
+                lastAction = {
+                    type: 'deleteSchedule',
+                    scheduleId: scheduleId,
+                    scheduleData: schedules[scheduleId]
+                };
+                
+                // Delete the schedule
+                delete schedules[scheduleId];
+                localStorage.setItem('schedules', JSON.stringify(schedules));
+                
+                // If the deleted schedule was the current one, create a new schedule
+                if (scheduleId === currentScheduleId) {
+                    createNewSchedule();
+                }
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].scheduleDeleted);
+                
+                // Refresh saved schedules list
+                updateSavedSchedulesList();
+            }
+        }
+        
+        // Function to duplicate a schedule
+        function duplicateSchedule(scheduleId) {
+            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+            
+            if (schedules[scheduleId]) {
+                // Create a copy with a new ID
+                const newId = 'schedule-' + Date.now();
+                const scheduleCopy = JSON.parse(JSON.stringify(schedules[scheduleId]));
+                scheduleCopy.id = newId;
+                scheduleCopy.title = scheduleCopy.title + ' (copy)';
+                
+                // Save the copy
+                schedules[newId] = scheduleCopy;
+                localStorage.setItem('schedules', JSON.stringify(schedules));
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].scheduleSaved);
+                
+                // Refresh saved schedules list
+                updateSavedSchedulesList();
+            }
+        }
+        
+        // Function to share a schedule
+        function shareSchedule(scheduleId) {
+            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+            
+            if (schedules[scheduleId]) {
+                // Create a share link with data in the hash
+                const scheduleData = schedules[scheduleId];
+                const compressedData = btoa(JSON.stringify(scheduleData));
+                const shareUrl = `${window.location.origin}${window.location.pathname}#share=${compressedData}`;
+                
+                // Copy to clipboard
+                const textArea = document.createElement('textarea');
+                textArea.value = shareUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].linkCopied);
+            }
+        }
+        
+        // Function to export the current schedule as JSON
+        function exportScheduleAsJson() {
+            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+            
+            if (schedules[currentScheduleId]) {
+                const scheduleData = schedules[currentScheduleId];
+                const dataStr = JSON.stringify(scheduleData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                
+                const exportFileName = scheduleData.title || 'schedule';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', `${exportFileName}.json`);
+                linkElement.click();
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].exportSuccess);
+            }
+        }
+        
+        // Function to export the current schedule as PDF
+        function exportScheduleAsPdf() {
+            // Use html2canvas to capture the schedule table
+            html2canvas(document.getElementById('scheduleTable'), {
+                backgroundColor: null,
+                scale: 2
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jspdf.jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm'
+                });
+                
+                const title = $('#scheduleTitle').val() || translations[currentLanguage].weeklySchedule;
+                
+                // Calculate dimensions
+                const imgWidth = 280;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                
+                // Add image to PDF
+                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                
+                // Save PDF
+                pdf.save(`${title}.pdf`);
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].exportSuccess);
+            });
+        }
+        
+        // Function to export the current schedule as PNG
+        function exportScheduleAsPng() {
+            // Use html2canvas to capture the schedule table
+            html2canvas(document.getElementById('scheduleTable'), {
+                backgroundColor: null,
+                scale: 2
+            }).then(canvas => {
+                const title = $('#scheduleTitle').val() || translations[currentLanguage].weeklySchedule;
+                
+                const link = document.createElement('a');
+                link.download = `${title}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].exportSuccess);
+            });
+        }
+        
+        // Function to import a schedule from JSON
+        function importScheduleFromJson(event) {
+            const file = event.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const scheduleData = JSON.parse(e.target.result);
+                        
+                        // Generate a new ID for the imported schedule
+                        const newId = 'schedule-' + Date.now();
+                        scheduleData.id = newId;
+                        
+                        // Save the imported schedule
+                        const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+                        schedules[newId] = scheduleData;
+                        localStorage.setItem('schedules', JSON.stringify(schedules));
+                        
+                        // Load the imported schedule
+                        loadSchedule(newId);
+                        
+                        // Show notification
+                        showNotification('success', translations[currentLanguage].importSuccess);
+                        
+                        // Reset file input
+                        $('#importJsonInput').val('');
+                    } catch (error) {
+                        showNotification('error', translations[currentLanguage].error);
+                        console.error('Import error:', error);
+                    }
+                };
+                
+                reader.readAsText(file);
+            }
+        }
+        
+        // Function to export all saved schedules
+        function exportAllSchedules() {
+            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+            const settings = JSON.parse(localStorage.getItem('scheduleSettings') || '{}');
+            
+            const exportData = {
+                schedules: schedules,
+                settings: settings,
+                currentScheduleId: currentScheduleId
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', 'schedule_backup.json');
+            linkElement.click();
+            
+            // Show notification
+            showNotification('success', translations[currentLanguage].exportSuccess);
+        }
+        
+        // Function to import all schedules
+        function importAllSchedules() {
+            // Create an invisible file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+            
+            fileInput.onchange = function(event) {
+                const file = event.target.files[0];
+                
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        try {
+                            const importData = JSON.parse(e.target.result);
+                            
+                            // Check if the import data has the expected structure
+                            if (importData.schedules && importData.settings) {
+                                localStorage.setItem('schedules', JSON.stringify(importData.schedules));
+                                localStorage.setItem('scheduleSettings', JSON.stringify(importData.settings));
+                                
+                                if (importData.currentScheduleId) {
+                                    currentScheduleId = importData.currentScheduleId;
+                                    localStorage.setItem('currentScheduleId', currentScheduleId);
+                                }
+                                
+                                // Load the current schedule
+                                loadSchedule(currentScheduleId);
+                                
+                                // Apply settings
+                                applySettings();
+                                
+                                // Show notification
+                                showNotification('success', translations[currentLanguage].importSuccess);
+                            } else {
+                                throw new Error('Invalid backup file structure');
+                            }
+                        } catch (error) {
+                            showNotification('error', translations[currentLanguage].error);
+                            console.error('Import error:', error);
+                        }
+                        
+                        // Clean up
+                        document.body.removeChild(fileInput);
+                    };
+                    
+                    reader.readAsText(file);
+                } else {
+                    document.body.removeChild(fileInput);
+                }
+            };
+            
+            fileInput.click();
+        }
+        
+        // Function to search in the schedule
+        function searchSchedule(query) {
+            if (!query) {
+                // Reset all highlighting
+                $('.cell').removeClass('bg-warning');
+                return;
+            }
+            
+            query = query.toLowerCase();
+            let matchFound = false;
+            
+            // Search in each cell
+            $('.cell').each(function() {
+                const cell = $(this);
+                const title = cell.find('.cell-title').text().toLowerCase();
+                const notes = cell.find('.cell-notes').text().toLowerCase();
+                
+                if (title.includes(query) || notes.includes(query)) {
+                    cell.addClass('bg-warning');
+                    matchFound = true;
+                } else {
+                    cell.removeClass('bg-warning');
+                }
+            });
+            
+            // Show notification with search results
+            if (matchFound) {
+                showNotification('info', translations[currentLanguage].searchResults);
+            } else {
+                showNotification('warning', translations[currentLanguage].noSearchResults);
+            }
+        }
+        
+        // Function to undo the last action
+        function undoLastAction() {
+            if (lastAction) {
+                switch (lastAction.type) {
+                    case 'edit':
+                        // Undo cell edit
+                        const editedCell = $(`#${lastAction.cellId}`);
+                        editedCell.find('.cell-title').text(lastAction.previousData.title);
+                        editedCell.find('.cell-notes').text(lastAction.previousData.notes);
+                        editedCell.find('.cell-time').text(lastAction.previousData.time);
+                        editedCell.css({
+                            'background-color': lastAction.previousData.backgroundColor,
+                            'color': lastAction.previousData.textColor,
+                            'font-family': lastAction.previousData.fontFamily,
+                            'font-size': lastAction.previousData.fontSize
+                        });
+                        break;
+                        
+                    case 'delete':
+                        // Restore deleted cell
+                        const dayCells = $(`.day-row[data-day="${lastAction.cellData.day}"] .day-cells`);
+                        const newCell = addCell(lastAction.cellData.day, dayCells, {
+                            id: lastAction.cellData.id,
+                            title: lastAction.cellData.title,
+                            notes: lastAction.cellData.notes,
+                            startTime: lastAction.cellData.time.split(' - ')[0] || '',
+                            endTime: lastAction.cellData.time.split(' - ')[1] || '',
+                            backgroundColor: lastAction.cellData.backgroundColor,
+                            textColor: lastAction.cellData.textColor,
+                            fontFamily: lastAction.cellData.fontFamily,
+                            fontSize: lastAction.cellData.fontSize
+                        });
+                        
+                        // Insert at the original position
+                        const cells = dayCells.find('.cell');
+                        if (lastAction.cellData.index < cells.length) {
+                            cells.eq(lastAction.cellData.index).before(newCell);
+                        }
+                        break;
+                        
+                    case 'clear':
+                        // Restore cleared schedule
+                        if (lastAction.previousSchedule) {
+                            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+                            schedules[currentScheduleId] = lastAction.previousSchedule;
+                            localStorage.setItem('schedules', JSON.stringify(schedules));
+                            loadSchedule(currentScheduleId);
+                        }
+                        break;
+                        
+                    case 'deleteSchedule':
+                        // Restore deleted schedule
+                        if (lastAction.scheduleData) {
+                            const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+                            schedules[lastAction.scheduleId] = lastAction.scheduleData;
+                            localStorage.setItem('schedules', JSON.stringify(schedules));
+                            updateSavedSchedulesList();
+                        }
+                        break;
+                }
+                
+                // Save changes
+                if (autoSaveEnabled) {
+                    saveSchedule();
+                }
+                
+                // Clear last action
+                lastAction = null;
+                
+                // Show notification
+                showNotification('success', translations[currentLanguage].actionUndone);
+            }
+        }
+        
+        // Function to sort cells by time within a day
+        function sortCellsByTime(day) {
+            const dayCells = $(`.day-row[data-day="${day}"] .day-cells`);
+            const cells = dayCells.find('.cell').get();
+            
+            cells.sort(function(a, b) {
+                const timeA = $(a).find('.cell-time').text().split(' - ')[0] || '99:99';
+                const timeB = $(b).find('.cell-time').text().split(' - ')[0] || '99:99';
+                
+                return timeA.localeCompare(timeB);
+            });
+            
+            // Reinsert sorted cells
+            $.each(cells, function(index, cell) {
+                dayCells.append(cell);
+            });
+            
+            // Save changes
+            if (autoSaveEnabled) {
+                saveSchedule();
+            }
+            
+            // Show notification
+            showNotification('success', translations[currentLanguage].sortByTime);
+        }
+        
+        // Function to sort all days by time
+        function sortAllDaysByTime() {
+            $('.day-row').each(function() {
+                const day = $(this).data('day');
+                sortCellsByTime(day);
+            });
+        }
+        
+        // Function to check if dark mode should be enabled based on time
+        function checkAutoDarkMode() {
+            if ($('#autoDarkModeToggle').is(':checked')) {
+                const currentHour = new Date().getHours();
+                const isDarkTime = currentHour < 6 || currentHour >= 18; // Dark between 6 PM and 6 AM
+                
+                if (isDarkTime && !$('#darkModeToggle').is(':checked')) {
+                    $('#darkModeToggle').prop('checked', true);
+                    applyDarkMode(true);
+                } else if (!isDarkTime && $('#darkModeToggle').is(':checked')) {
+                    $('#darkModeToggle').prop('checked', false);
+                    applyDarkMode(false);
+                }
+            }
+        }
+        
+        // Function to apply dark mode
+        function applyDarkMode(isDarkMode) {
+            if (isDarkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+            
+            // Save setting
+            const settings = JSON.parse(localStorage.getItem('scheduleSettings') || '{}');
+            settings.darkMode = isDarkMode;
+            localStorage.setItem('scheduleSettings', JSON.stringify(settings));
+        }
+        
+        // Function to apply all settings
+        function applySettings() {
+            const settings = JSON.parse(localStorage.getItem('scheduleSettings') || '{}');
+            
+            // Apply auto save setting
+            if (settings.autoSave !== undefined) {
+                autoSaveEnabled = settings.autoSave;
+                $('#autoSaveToggle').prop('checked', autoSaveEnabled);
+            }
+            
+            // Apply responsive layout setting
+            if (settings.responsiveLayout !== undefined) {
+                $('#responsiveToggle').prop('checked', settings.responsiveLayout);
+            }
+            
+            // Apply notifications setting
+            if (settings.notifications !== undefined) {
+                $('#notificationsToggle').prop('checked', settings.notifications);
+            }
+            
+            // Apply day colors setting
+            if (settings.dayColors !== undefined) {
+                $('#dayColorsToggle').prop('checked', settings.dayColors);
+            }
+            
+            // Apply language setting
+            if (settings.language) {
+                currentLanguage = settings.language;
+                $('#languageSelect').val(currentLanguage);
+                updateLanguage();
+            }
+            
+            // Apply dark mode setting
+            if (settings.darkMode !== undefined) {
+                $('#darkModeToggle').prop('checked', settings.darkMode);
+                applyDarkMode(settings.darkMode);
+            }
+            
+            // Apply auto dark mode setting
+            if (settings.autoDarkMode !== undefined) {
+                $('#autoDarkModeToggle').prop('checked', settings.autoDarkMode);
+                if (settings.autoDarkMode) {
+                    checkAutoDarkMode();
+                }
+            }
+            
+            // Apply header color
+            if (settings.headerColor) {
+                $('#headerColorPicker').val(settings.headerColor);
+                $('#headerColorPreview').css('background-color', settings.headerColor);
+                document.documentElement.style.setProperty('--header-bg', settings.headerColor);
+            }
+            
+            // Apply default font
+            if (settings.defaultFont) {
+                $('#defaultFontSelect').val(settings.defaultFont);
+                document.documentElement.style.setProperty('--font-primary', settings.defaultFont);
+            }
+            
+            // Apply default font size
+            if (settings.defaultFontSize) {
+                $('#currentFontSize').text(settings.defaultFontSize);
+                // Apply font size to body
+                $('body').css('font-size', settings.defaultFontSize);
+            }
+            
+            // Apply theme
+            if (settings.theme) {
+                $('.theme-option').removeClass('active');
+                $(`.theme-option[data-theme="${settings.theme}"]`).addClass('active');
+                
+                // Apply theme-specific colors
+                applyThemeColors(settings.theme);
+            }
+        }
+        
+        // Function to save all settings
+        function saveSettings() {
+            const settings = {
+                autoSave: $('#autoSaveToggle').is(':checked'),
+                responsiveLayout: $('#responsiveToggle').is(':checked'),
+                notifications: $('#notificationsToggle').is(':checked'),
+                dayColors: $('#dayColorsToggle').is(':checked'),
+                language: $('#languageSelect').val(),
+                darkMode: $('#darkModeToggle').is(':checked'),
+                autoDarkMode: $('#autoDarkModeToggle').is(':checked'),
+                headerColor: $('#headerColorPicker').val(),
+                defaultFont: $('#defaultFontSelect').val(),
+                defaultFontSize: $('#currentFontSize').text(),
+                theme: $('.theme-option.active').data('theme')
+            };
+            
+            // Save settings to local storage
+            localStorage.setItem('scheduleSettings', JSON.stringify(settings));
+            
+            // Apply settings
+            applySettings();
+            
+            // Show notification
+            showNotification('success', translations[currentLanguage].settingsSaved);
+            
+            // Close settings modal
+            closeSettingsModal();
+        }
+        
+        // Function to apply theme colors
+        function applyThemeColors(theme) {
+            const root = document.documentElement;
+            
+            switch (theme) {
+                case 'light':
+                    root.style.setProperty('--primary-color', '#4e73df');
+                    root.style.setProperty('--secondary-color', '#1cc88a');
+                    root.style.setProperty('--dark-color', '#2e3e50');
+                    root.style.setProperty('--light-color', '#f8f9fc');
+                    root.style.setProperty('--danger-color', '#e74a3b');
+                    root.style.setProperty('--warning-color', '#f6c23e');
+                    root.style.setProperty('--info-color', '#36b9cc');
+                    break;
+                    
+                case 'dark':
+                    root.style.setProperty('--primary-color', '#6e8efb');
+                    root.style.setProperty('--secondary-color', '#2bd999');
+                    root.style.setProperty('--dark-color', '#1e2a3a');
+                    root.style.setProperty('--light-color', '#3a506b');
+                    root.style.setProperty('--danger-color', '#fa5c46');
+                    root.style.setProperty('--warning-color', '#ffd950');
+                    root.style.setProperty('--info-color', '#4dd4e1');
+                    break;
+                    
+                case 'blue':
+                    root.style.setProperty('--primary-color', '#4e73df');
+                    root.style.setProperty('--secondary-color', '#36b9cc');
+                    root.style.setProperty('--dark-color', '#2c3e50');
+                    root.style.setProperty('--light-color', '#f0f5ff');
+                    root.style.setProperty('--danger-color', '#e74a3b');
+                    root.style.setProperty('--warning-color', '#f6c23e');
+                    root.style.setProperty('--info-color', '#36b9cc');
+                    break;
+                    
+                case 'green':
+                    root.style.setProperty('--primary-color', '#1cc88a');
+                    root.style.setProperty('--secondary-color', '#4e73df');
+                    root.style.setProperty('--dark-color', '#2c3e50');
+                    root.style.setProperty('--light-color', '#f0fff7');
+                    root.style.setProperty('--danger-color', '#e74a3b');
+                    root.style.setProperty('--warning-color', '#f6c23e');
+                    root.style.setProperty('--info-color', '#36b9cc');
+                    break;
+                    
+                case 'red':
+                    root.style.setProperty('--primary-color', '#e74a3b');
+                    root.style.setProperty('--secondary-color', '#1cc88a');
+                    root.style.setProperty('--dark-color', '#2c3e50');
+                    root.style.setProperty('--light-color', '#fff5f5');
+                    root.style.setProperty('--danger-color', '#e74a3b');
+                    root.style.setProperty('--warning-color', '#f6c23e');
+                    root.style.setProperty('--info-color', '#36b9cc');
+                    break;
+            }
+        }
+        
+        // Function to reset all settings to default
+        function resetSettings() {
+            const defaultSettings = {
+                autoSave: true,
+                responsiveLayout: true,
+                notifications: false,
+                dayColors: false,
+                language: 'ar',
+                darkMode: false,
+                autoDarkMode: false,
+                headerColor: '#4e73df',
+                defaultFont: 'Cairo, sans-serif',
+                defaultFontSize: '1rem',
+                theme: 'light'
+            };
+            
+            // Save default settings
+            localStorage.setItem('scheduleSettings', JSON.stringify(defaultSettings));
+            
+            // Apply settings
+            applySettings();
+            
+            // Update UI elements to match default settings
+            $('#autoSaveToggle').prop('checked', true);
+            $('#responsiveToggle').prop('checked', true);
+            $('#notificationsToggle').prop('checked', false);
+            $('#dayColorsToggle').prop('checked', false);
+            $('#languageSelect').val('ar');
+            $('#darkModeToggle').prop('checked', false);
+            $('#autoDarkModeToggle').prop('checked', false);
+            $('#headerColorPicker').val('#4e73df');
+            $('#headerColorPreview').css('background-color', '#4e73df');
+            $('#defaultFontSelect').val('Cairo, sans-serif');
+            $('#currentFontSize').text('1rem');
+            $('.theme-option').removeClass('active');
+            $('.theme-option[data-theme="light"]').addClass('active');
+            
+            // Show notification
+            showNotification('success', translations[currentLanguage].settingsSaved);
+        }
+        
+        // Function to open settings modal
+        function openSettingsModal() {
+            // Update the saved schedules list
+            updateSavedSchedulesList();
+            
+            // Show the modal
+            $('#settingsModal').css('display', 'flex');
+        }
+        
+        // Function to close settings modal
+        function closeSettingsModal() {
+            $('#settingsModal').css('display', 'none');
+        }
+        
+        // Function to show notification
+        function showNotification(type, message) {
+            const notification = $('#notification');
+            const notificationMessage = $('#notificationMessage');
+            
+            // Set type and icon
+            notification.removeClass('notification-success notification-error notification-warning notification-info');
+            let iconClass = 'fa-info-circle';
+            
+            switch (type) {
+                case 'success':
+                    notification.addClass('notification-success');
+                    iconClass = 'fa-check-circle';
+                    break;
+                case 'error':
+                    notification.addClass('notification-error');
+                    iconClass = 'fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    notification.addClass('notification-warning');
+                    iconClass = 'fa-exclamation-triangle';
+                    break;
+                case 'info':
+                    notification.addClass('notification-info');
+                    iconClass = 'fa-info-circle';
+                    break;
+            }
+            
+            // Set icon and message
+            notification.find('.notification-icon').removeClass().addClass(`fas ${iconClass} notification-icon`);
+            notificationMessage.text(message);
+            
+            // Show notification
+            notification.addClass('show');
+            
+            // Hide after 3 seconds
+            setTimeout(function() {
+                notification.removeClass('show');
+            }, 3000);
+        }
+        
+        // Utility function to convert RGB to HEX
+        function rgbToHex(rgb) {
+            // If already a hex color, return it
+            if (rgb.charAt(0) === '#') {
+                return rgb;
+            }
+            
+            // Parse RGB format
+            const rgbMatch = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!rgbMatch) return '#f8f9fc'; // Default if parsing fails
+            
+            const r = parseInt(rgbMatch[1]);
+            const g = parseInt(rgbMatch[2]);
+            const b = parseInt(rgbMatch[3]);
+            
+            return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+        }
+        
+        // Function to check for a shared schedule in the URL
+        function checkForSharedSchedule() {
+            if (window.location.hash) {
+                const hashMatch = window.location.hash.match(/#share=(.+)/);
+                if (hashMatch) {
+                    try {
+                        const compressedData = hashMatch[1];
+                        const scheduleData = JSON.parse(atob(compressedData));
+                        
+                        // Generate a new ID for the shared schedule
+                        const newId = 'schedule-' + Date.now();
+                        scheduleData.id = newId;
+                        
+                        // Save the shared schedule
+                        const schedules = JSON.parse(localStorage.getItem('schedules') || '{}');
+                        schedules[newId] = scheduleData;
+                        localStorage.setItem('schedules', JSON.stringify(schedules));
+                        
+                        // Load the shared schedule
+                        loadSchedule(newId);
+                        
+                        // Remove the hash from the URL
+                        history.replaceState(null, document.title, window.location.pathname);
+                        
+                        // Show notification
+                        showNotification('success', translations[currentLanguage].scheduleLoaded);
+                    } catch (error) {
+                        showNotification('error', translations[currentLanguage].error);
+                        console.error('Share error:', error);
+                    }
+                }
+            }
+        }
+        
+        // Document Ready
+        $(document).ready(function() {
+            // Initialize language
+            const settings = JSON.parse(localStorage.getItem('scheduleSettings') || '{}');
+            currentLanguage = settings.language || 'ar';
+            updateLanguage();
+            
+            // Apply settings
+            applySettings();
+            
+            // Check if there's a schedule in the URL
+            checkForSharedSchedule();
+            
+            // Check if there's a saved current schedule
+            const savedCurrentScheduleId = localStorage.getItem('currentScheduleId');
+            if (savedCurrentScheduleId) {
+                currentScheduleId = savedCurrentScheduleId;
+                loadSchedule(currentScheduleId);
+            } else {
+                // Initialize a new schedule
+                initializeSchedule();
+            }
+            
+            // Event: Add new cell
+            $(document).on('click', '.day-add-btn', function() {
+                const dayRow = $(this).closest('.day-row');
+                const day = dayRow.data('day');
+                const dayCells = dayRow.find('.day-cells');
+                
+                addCell(day, dayCells);
+                
+                if (autoSaveEnabled) {
+                    saveSchedule();
+                }
+            });
+            
+            // Event: Delete cell
+            $(document).on('click', '.cell-delete-btn', function(e) {
+                e.stopPropagation();
+                const cell = $(this).closest('.cell');
+                deleteCell(cell);
+            });
+            
+            // Event: Edit cell
+            $(document).on('click', '.cell', function() {
+                openCellEditor($(this));
+            });
+            
+            // Event: Close cell editor
+            $('.editor-close').click(function() {
+                closeCellEditor();
+            });
+            
+            // Event: Save cell changes
+            $('#cellEditorForm').submit(function(e) {
+                e.preventDefault();
+                saveCellChanges();
+            });
+            
+            // Event: Delete cell from editor
+            $('#editorDeleteBtn').click(function() {
+                const cellId = $('#editCellId').val();
+                const cell = $(`#${cellId}`);
+                
+                deleteCell(cell);
+                closeCellEditor();
+            });
+            
+            // Event: Update color preview on change
+            $('#cellColor').on('input', function() {
+                $('#cellColorPreview').css('background-color', $(this).val());
+            });
+            
+            $('#textColor').on('input', function() {
+                $('#textColorPreview').css('background-color', $(this).val());
+            });
+            
+            // Event: New schedule button
+            $('#newScheduleBtn').click(function() {
+                createNewSchedule();
+            });
+            
+            // Event: Save schedule button
+            $('#saveScheduleBtn, #saveBtn').click(function() {
+                saveScheduleWithName();
+            });
+            
+            // Event: Load schedule button
+            $('#loadScheduleBtn').click(function() {
+                openSettingsModal();
+                $('.settings-tab[data-tab="saved"]').click();
+            });
+            
+            // Event: Undo button
+            $('#undoBtn').click(function() {
+                undoLastAction();
+            });
+            
+            // Event: Clear schedule button
+            $('#clearScheduleBtn').click(function() {
+                clearSchedule();
+            });
+            
+            // Event: Search input
+            $('#searchInput').on('input', function() {
+                const query = $(this).val().trim();
+                searchSchedule(query);
+            });
+            
+            // Event: Settings button
+            $('#settingsBtn').click(function() {
+                openSettingsModal();
+            });
+            
+            // Event: Close settings modal
+            $('#settingsCloseBtn, #settingsCancelBtn').click(function() {
+                closeSettingsModal();
+            });
+            
+            // Event: Settings tabs
+            $('.settings-tab').click(function() {
+                $('.settings-tab').removeClass('active');
+                $(this).addClass('active');
+                
+                const tabName = $(this).data('tab');
+                $('.settings-section').removeClass('active');
+                $(`.settings-section[data-section="${tabName}"]`).addClass('active');
+            });
+            
+            // Event: Apply settings
+            $('#settingsApplyBtn').click(function() {
+                saveSettings();
+            });
+            
+            // Event: Language switcher
+            $('.language-btn').click(function() {
+                currentLanguage = $(this).data('lang');
+                updateLanguage();
+                
+                // Save language setting
+                const settings = JSON.parse(localStorage.getItem('scheduleSettings') || '{}');
+                settings.language = currentLanguage;
+                localStorage.setItem('scheduleSettings', JSON.stringify(settings));
+            });
+            
+            // Event: Dark mode toggle
+            $('#darkModeToggle').change(function() {
+                applyDarkMode($(this).is(':checked'));
+            });
+            
+            // Event: Load saved schedule
+            $(document).on('click', '.load-schedule-btn', function() {
+                const scheduleId = $(this).closest('.saved-schedule-item').data('id');
+                loadSchedule(scheduleId);
+                closeSettingsModal();
+            });
+            
+            // Event: Delete saved schedule
+            $(document).on('click', '.delete-schedule-btn', function() {
+                const scheduleId = $(this).closest('.saved-schedule-item').data('id');
+                deleteSchedule(scheduleId);
+            });
+            
+            // Event: Duplicate saved schedule
+            $(document).on('click', '.duplicate-schedule-btn', function() {
+                const scheduleId = $(this).closest('.saved-schedule-item').data('id');
+                duplicateSchedule(scheduleId);
+            });
+            
+            // Event: Share saved schedule
+            $(document).on('click', '.share-schedule-btn', function() {
+                const scheduleId = $(this).closest('.saved-schedule-item').data('id');
+                shareSchedule(scheduleId);
+            });
+            
+            // Event: Clear all saved schedules
+            $('#clearSavedBtn').click(function() {
+                if (confirm(translations[currentLanguage].confirmDeleteAll)) {
+                    localStorage.removeItem('schedules');
+                    createNewSchedule();
+                    updateSavedSchedulesList();
+                    showNotification('success', translations[currentLanguage].clearAll);
+                }
+            });
+            
+            // Event: Export as JSON
+            $('#exportJsonBtn').click(function() {
+                exportScheduleAsJson();
+                closeSettingsModal();
+            });
+            
+            // Event: Export as PDF
+            $('#exportPdfBtn, #exportBtn').click(function() {
+                exportScheduleAsPdf();
+                if ($(this).attr('id') === 'exportBtn') {
+                    closeSettingsModal();
+                }
+            });
+            
+            // Event: Export as PNG
+            $('#exportPngBtn').click(function() {
+                exportScheduleAsPng();
+                closeSettingsModal();
+            });
+            
+            // Event: Import from JSON
+            $('#importJsonInput').change(function(e) {
+                importScheduleFromJson(e);
+                closeSettingsModal();
+            });
+            
+            // Event: Export all data
+            $('#exportAllBtn').click(function() {
+                exportAllSchedules();
+            });
+            
+            // Event: Import all data
+            $('#importAllBtn').click(function() {
+                importAllSchedules();
+            });
+            
+            // Event: Theme option selection
+            $('.theme-option').click(function() {
+                $('.theme-option').removeClass('active');
+                $(this).addClass('active');
+                
+                const theme = $(this).data('theme');
+                applyThemeColors(theme);
+            });
+            
+            // Event: Header color change
+            $('#headerColorPicker').on('input', function() {
+                const color = $(this).val();
+                $('#headerColorPreview').css('background-color', color);
+                document.documentElement.style.setProperty('--header-bg', color);
+            });
+            
+            // Event: Default font change
+            $('#defaultFontSelect').change(function() {
+                const font = $(this).val();
+                document.documentElement.style.setProperty('--font-primary', font);
+            });
+            
+            // Event: Font size controls
+            $('#increaseFontBtn').click(function() {
+                let currentSize = $('#currentFontSize').text();
+                let sizeNum = parseFloat(currentSize);
+                
+                if (sizeNum < 1.5) {
+                    sizeNum += 0.1;
+                    const newSize = sizeNum.toFixed(1) + 'rem';
+                    $('#currentFontSize').text(newSize);
+                    $('body').css('font-size', newSize);
+                }
+            });
+            
+            $('#decreaseFontBtn').click(function() {
+                let currentSize = $('#currentFontSize').text();
+                let sizeNum = parseFloat(currentSize);
+                
+                if (sizeNum > 0.8) {
+                    sizeNum -= 0.1;
+                    const newSize = sizeNum.toFixed(1) + 'rem';
+                    $('#currentFontSize').text(newSize);
+                    $('body').css('font-size', newSize);
+                }
+            });
+            
+            // Event: Print button
+            $('#printBtn').click(function() {
+                window.print();
+            });
+            
+            // Event: Close notification
+            $('.notification-close').click(function() {
+                $('#notification').removeClass('show');
+            });
+            
+            // Check auto dark mode every minute
+            if ($('#autoDarkModeToggle').is(':checked')) {
+                checkAutoDarkMode();
+                setInterval(checkAutoDarkMode, 60000);
+            }
+            
+            // Auto save every 30 seconds if enabled
+            setInterval(function() {
+                if (autoSaveEnabled) {
+                    saveSchedule();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
